@@ -21,6 +21,7 @@ model Level {
   id        Int      @id @default(autoincrement())
   number    Int      @unique
   questions Question[]
+  category  String
   runs      Run[]
 }
 
