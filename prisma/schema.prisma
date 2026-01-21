@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  xp        Int      @default(0)
+  runs      Run[]
+  createdAt DateTime @default(now())
+}
+
+model Level {
+  id        Int      @id @default(autoincrement())
+  number    Int      @unique
+  questions Question[]
+  category  String
+  runs      Run[]
+}
+
+model Question {
+  id         Int      @id @default(autoincrement())
+  levelId    Int
+  type       String   // "qcm", "cloze", "order", "translate"
+  language   String   // ex: "en", "fr", "es"
+  content    Json
+  level      Level    @relation(fields: [levelId], references: [id])
+  attempts   Attempt[]
+}
+
+model Run {
+  id             Int       @id @default(autoincrement())
+  userId         Int
+  levelId        Int
+  score          Int       @default(0)
+  correctCount   Int       @default(0)
+  answeredCount  Int       @default(0)
+  status         String    // "in_progress", "completed", "abandoned"
+  createdAt      DateTime  @default(now())
+  user           User      @relation(fields: [userId], references: [id])
+  level          Level     @relation(fields: [levelId], references: [id])
+  attempts       Attempt[]
+}
+
+model Attempt {
+  id         Int      @id @default(autoincrement())
+  runId      Int
+  questionId Int
+  answer     Json
+  correct    Boolean
+  createdAt  DateTime @default(now())
+  run        Run      @relation(fields: [runId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id])
+}
