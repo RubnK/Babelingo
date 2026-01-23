@@ -16,6 +16,12 @@ app.get('/health', (_req, res) => {
 import levelsRouter from './routes/levels';
 app.use('/levels', levelsRouter);
 
+import runsRouter from './routes/runs';
+app.use('/runs', runsRouter);
+
+import attemptsRouter from './routes/attempts';
+app.use('/attempts', attemptsRouter);
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Service gameplay démarré sur le port ${PORT}`);
