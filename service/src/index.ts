@@ -12,7 +12,9 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Les routes gameplay seront ajoutées ici
+
+import levelsRouter from './routes/levels';
+app.use('/levels', levelsRouter);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
