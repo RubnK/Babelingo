@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
   getAllLevels,
   getQuestionsByLevel,
+  getCompletedLevelsByUser,
 } from "../controllers/levelsController";
 
 const router = Router();
@@ -111,5 +112,47 @@ router.get("/", getAllLevels);
  *                           word: "Vogel"
  */
 router.get("/:id/questions", getQuestionsByLevel);
+
+/**
+ * @swagger
+ * /levels/users/{id}:
+ *   get:
+ *     summary: Liste les niveaux terminés par un utilisateur
+ *     tags:
+ *       - Levels
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de l'utilisateur
+ *     responses:
+ *       200:
+ *         description: Liste des niveaux terminés
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   number:
+ *                     type: integer
+ *                   category:
+ *                     type: string
+ *             examples:
+ *               exemple:
+ *                 value:
+ *                   - id: 1
+ *                     number: 1
+ *                     category: "animaux"
+ *                   - id: 2
+ *                     number: 2
+ *                     category: "nourriture"
+ */
+router.get("/users/:id", getCompletedLevelsByUser);
 
 export default router;

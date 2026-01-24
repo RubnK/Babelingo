@@ -1,9 +1,13 @@
-import { Router } from 'express';
+import { Router } from "express";
 
-import { createRun, getRunById, getRunsByUser } from '../controllers/runsController';
+import {
+  createRun,
+  getRunById,
+  getRunsByUser,
+  closeRun,
+} from "../controllers/runsController";
 
 const router = Router();
-
 
 /**
  * @swagger
@@ -49,8 +53,7 @@ const router = Router();
  *                   format: date-time
  *                   example: "2026-01-23T12:34:56.789Z"
  */
-router.post('/', createRun);
-
+router.post("/", createRun);
 
 /**
  * @swagger
@@ -90,8 +93,60 @@ router.post('/', createRun);
  *                   format: date-time
  *                   example: "2026-01-23T12:34:56.789Z"
  */
-router.get('/:id', getRunById);
+router.get("/:id", getRunById);
 
+/**
+ * @swagger
+ * /runs/{id}/close:
+ *   patch:
+ *     summary: Termine une session de jeu et indique si elle est réussie
+ *     tags:
+ *       - Runs
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la session
+ *     responses:
+ *       200:
+ *         description: Session clôturée
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 userId:
+ *                   type: integer
+ *                 levelId:
+ *                   type: integer
+ *                 startedAt:
+ *                   type: string
+ *                   format: date-time
+ *                 completedAt:
+ *                   type: string
+ *                   format: date-time
+ *                 succeeded:
+ *                   type: boolean
+ *                 correctCount:
+ *                   type: integer
+ *             examples:
+ *               exemple:
+ *                 value:
+ *                   id: 1
+ *                   userId: 1
+ *                   levelId: 2
+ *                   startedAt: "2026-01-24T10:00:00.000Z"
+ *                   completedAt: "2026-01-24T10:10:00.000Z"
+ *                   succeeded: true
+ *                   correctCount: 8
+ */
+router.patch('/:id/close', closeRun);
 
 /**
  * @swagger
@@ -133,6 +188,6 @@ router.get('/:id', getRunById);
  *                     format: date-time
  *                     example: "2026-01-23T12:34:56.789Z"
  */
-router.get('/user/:id', getRunsByUser);
+router.get("/user/:id", getRunsByUser);
 
 export default router;
