@@ -28,7 +28,7 @@ export default function Navbar() {
           </div>
 
           {/* Menu de navigation au centre */}
-          <div className="hidden md:flex items-center space-x-8">
+          {/* <div className="hidden md:flex items-center space-x-8">
             <Link to="/courses" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
               Cours
             </Link>
@@ -41,7 +41,7 @@ export default function Navbar() {
             <Link to="/pricing" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
               Tarifs
             </Link>
-          </div>
+          </div> */}
 
           <div className="flex items-center space-x-4">
             {user ? (
