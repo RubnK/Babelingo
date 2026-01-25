@@ -5,6 +5,10 @@ import Homepage from './pages/Homepage'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import Courses from './pages/Courses'
+import Languages from './pages/Languages'
+import Community from './pages/Community'
+import Pricing from './pages/Pricing'
 import { AuthProvider } from './contexts/AuthContext'
 
 function App() {
@@ -18,6 +22,10 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/languages" element={<Languages />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/pricing" element={<Pricing />} />
           </Routes>
         </main>
       </div>
