@@ -18,10 +18,16 @@ export default function Login() {
     setIsLoading(true)
     setError('')
 
+    console.log('Tentative de connexion avec:', { email, password: '***' })
+    
     const result = await login(email, password)
+    console.log('Résultat de la connexion:', result)
+    
     if (result.success) {
+      console.log('Connexion réussie, redirection vers /dashboard')
       navigate('/dashboard')
     } else {
+      console.log('Connexion échouée:', result.message)
       setError(result.message || 'Email ou mot de passe incorrect')
     }
     setIsLoading(false)

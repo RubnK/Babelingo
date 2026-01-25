@@ -1,6 +1,9 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import axios from 'axios'
 
+// Configuration de l'URL de base pour l'API
+axios.defaults.baseURL = 'http://localhost:3000'
+
 interface User {
   id: number
   email: string
@@ -36,15 +39,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
-      const response = await axios.post('/api/auth/login', { email, password })
+      console.log('AuthContext: Tentative de connexion à l\'API')
+      const response = await axios.post('/auth/login', { email, password })
+      console.log('AuthContext: Réponse de l\'API:', response.status, response.data)
+      
       const { token, user: userData } = response.data
       
       localStorage.setItem('token', token)
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
       setUser(userData)
+      console.log('AuthContext: Connexion réussie, utilisateur défini:', userData)
       return { success: true }
     } catch (error: any) {
-      console.error('Login error:', error)
+      console.error('AuthContext: Erreur de connexion:', error)
+      console.error('AuthContext: Status:', error.response?.status)
+      console.error('AuthContext: Data:', error.response?.data)
       
       if (error.response?.status === 401) {
         return { success: false, message: 'Email ou mot de passe incorrect.' }
@@ -60,7 +69,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const register = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
-      const response = await axios.post('/api/auth/register', { email, password })
+      const response = await axios.post('/auth/register', { email, password })
       const { token, user: userData } = response.data
       
       localStorage.setItem('token', token)
