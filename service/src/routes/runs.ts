@@ -135,6 +135,9 @@ router.get("/:id", getRunById);
  *                   type: boolean
  *                 correctCount:
  *                   type: integer
+ *                 xpGagnes:
+ *                   type: integer
+ *                   description: XP gagnés lors de la session
  *             examples:
  *               exemple:
  *                 value:
@@ -145,6 +148,7 @@ router.get("/:id", getRunById);
  *                   completedAt: "2026-01-24T10:10:00.000Z"
  *                   succeeded: true
  *                   correctCount: 8
+ *                   xpGagnes: 130
  */
 router.patch('/:id/close', closeRun);
 

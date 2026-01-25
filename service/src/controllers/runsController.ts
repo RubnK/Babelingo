@@ -58,13 +58,15 @@ export async function closeRun(req: Request, res: Response) {
   const runId = parseInt(String(req.params.id), 10);
   if (isNaN(runId)) return res.status(400).json({ error: "ID de session invalide." });
   try {
-    // Récupérer toutes les tentatives de la run pour calculer la réussite.
+    // Récupérer toutes les tentatives de la run
     const attempts = await prisma.attempt.findMany({ where: { runId } });
     if (attempts.length !== 10) {
       return res.status(400).json({ error: "La session doit comporter 10 tentatives pour être clôturée." });
     }
     const correctCount = attempts.filter((a: { correct: any; }) => a.correct).length;
     const succeeded = correctCount >= 7;
+    // Calcul XP : 10 XP par bonne réponse, +50 si succeeded
+    const xpGagnes = correctCount * 10 + (succeeded ? 50 : 0);
     const run = await prisma.run.update({
       where: { id: runId },
       data: {
@@ -72,7 +74,7 @@ export async function closeRun(req: Request, res: Response) {
         succeeded,
       },
     });
-    res.json({ ...run, correctCount, succeeded });
+    res.json({ ...run, correctCount, succeeded, xpGagnes });
   } catch (error) {
     res.status(500).json({ error: "Erreur lors de la clôture de la session." });
   }
