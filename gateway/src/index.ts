@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
+import { swaggerUi, swaggerSpec } from './swagger';
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ app.get('/health', (req, res) => res.json({ status: 'ok', service: 'gateway' }))
 
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
