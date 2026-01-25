@@ -9,8 +9,8 @@ interface User {
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string) => Promise<boolean>
-  register: (email: string, password: string) => Promise<boolean>
+  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>
+  register: (email: string, password: string) => Promise<{ success: boolean; message?: string }>
   logout: () => void
   isLoading: boolean
 }
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsLoading(false)
   }, [])
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
       const response = await axios.post('/api/auth/login', { email, password })
       const { token, user: userData } = response.data
@@ -42,14 +42,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
       localStorage.setItem('token', token)
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
       setUser(userData)
-      return true
-    } catch (error) {
+      return { success: true }
+    } catch (error: any) {
       console.error('Login error:', error)
-      return false
+      
+      if (error.response?.status === 401) {
+        return { success: false, message: 'Email ou mot de passe incorrect.' }
+      } else if (error.response?.status === 404) {
+        return { success: false, message: 'Aucun compte trouvé avec cet email.' }
+      } else if (error.response?.status === 500) {
+        return { success: false, message: 'Erreur serveur. Veuillez réessayer plus tard.' }
+      } else {
+        return { success: false, message: 'Erreur lors de la connexion. Veuillez réessayer.' }
+      }
     }
   }
 
-  const register = async (email: string, password: string): Promise<boolean> => {
+  const register = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
       const response = await axios.post('/api/auth/register', { email, password })
       const { token, user: userData } = response.data
@@ -57,10 +66,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
       localStorage.setItem('token', token)
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
       setUser(userData)
-      return true
-    } catch (error) {
+      return { success: true }
+    } catch (error: any) {
       console.error('Register error:', error)
-      return false
+      
+      if (error.response?.status === 409) {
+        return { success: false, message: 'Cette adresse email est déjà utilisée. Veuillez en choisir une autre.' }
+      } else if (error.response?.status === 400) {
+        return { success: false, message: 'Données invalides. Vérifiez votre email et mot de passe.' }
+      } else if (error.response?.status === 500) {
+        return { success: false, message: 'Erreur serveur. Veuillez réessayer plus tard.' }
+      } else {
+        return { success: false, message: 'Erreur lors de la création du compte. Veuillez réessayer.' }
+      }
     }
   }
 

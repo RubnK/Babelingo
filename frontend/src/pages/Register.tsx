@@ -19,6 +19,14 @@ export default function Register() {
     setIsLoading(true)
     setError('')
 
+    // Validation de l'email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!email || !emailRegex.test(email)) {
+      setError('Veuillez entrer une adresse email valide')
+      setIsLoading(false)
+      return
+    }
+
     if (password !== confirmPassword) {
       setError('Les mots de passe ne correspondent pas')
       setIsLoading(false)
@@ -31,11 +39,11 @@ export default function Register() {
       return
     }
 
-    const success = await register(email, password)
-    if (success) {
+    const result = await register(email, password)
+    if (result.success) {
       navigate('/dashboard')
     } else {
-      setError('Erreur lors de la création du compte')
+      setError(result.message || 'Erreur lors de la création du compte')
     }
     setIsLoading(false)
   }

@@ -18,11 +18,11 @@ export default function Login() {
     setIsLoading(true)
     setError('')
 
-    const success = await login(email, password)
-    if (success) {
+    const result = await login(email, password)
+    if (result.success) {
       navigate('/dashboard')
     } else {
-      setError('Email ou mot de passe incorrect')
+      setError(result.message || 'Email ou mot de passe incorrect')
     }
     setIsLoading(false)
   }
