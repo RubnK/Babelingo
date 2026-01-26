@@ -11,6 +11,8 @@ export default function Exercise() {
   const [connections, setConnections] = useState<{left: string, right: string}[]>([]);
   const [selectedMCQ, setSelectedMCQ] = useState<string>('');
   const [isCompleted, setIsCompleted] = useState(false);
+  const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
+  const [selectedRight, setSelectedRight] = useState<string | null>(null);
 
   const [exercises, setExercises] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,14 +86,44 @@ export default function Exercise() {
 
   const handleWordMatching = (word: string, column: 'left' | 'right') => {
     if (!exerciseData) return;
-    // Logique simplifiée de matching
+    
     if (column === 'left') {
-      // Pour cette démonstration, on connecte automatiquement au premier mot de droite disponible
-      const rightWord = exerciseData.rightWords?.find((w: string) => 
-        !connections.some(c => c.right === w)
-      );
-      if (rightWord && !connections.some(c => c.left === word)) {
-        setConnections(prev => [...prev, { left: word, right: rightWord }]);
+      // Si le mot gauche est déjà connecté, le déconnecter
+      const existingConnection = connections.find(c => c.left === word);
+      if (existingConnection) {
+        setConnections(prev => prev.filter(c => c.left !== word));
+        setSelectedLeft(null);
+        setSelectedRight(null);
+        return;
+      }
+      
+      // Sélectionner le mot de gauche
+      setSelectedLeft(word);
+      
+      // Si un mot de droite est déjà sélectionné, créer la connexion
+      if (selectedRight) {
+        setConnections(prev => [...prev, { left: word, right: selectedRight }]);
+        setSelectedLeft(null);
+        setSelectedRight(null);
+      }
+    } else {
+      // Si le mot droit est déjà connecté, le déconnecter
+      const existingConnection = connections.find(c => c.right === word);
+      if (existingConnection) {
+        setConnections(prev => prev.filter(c => c.right !== word));
+        setSelectedLeft(null);
+        setSelectedRight(null);
+        return;
+      }
+      
+      // Sélectionner le mot de droite
+      setSelectedRight(word);
+      
+      // Si un mot de gauche est déjà sélectionné, créer la connexion
+      if (selectedLeft) {
+        setConnections(prev => [...prev, { left: selectedLeft, right: word }]);
+        setSelectedLeft(null);
+        setSelectedRight(null);
       }
     }
   };
@@ -103,6 +135,8 @@ export default function Exercise() {
       setSelectedAnswers([]);
       setConnections([]);
       setSelectedMCQ('');
+      setSelectedLeft(null);
+      setSelectedRight(null);
     } else {
       setIsCompleted(true);
     }
@@ -112,6 +146,8 @@ export default function Exercise() {
     setSelectedAnswers([]);
     setConnections([]);
     setSelectedMCQ('');
+    setSelectedLeft(null);
+    setSelectedRight(null);
   };
 
   const isAnswerCorrect = () => {
@@ -220,36 +256,49 @@ export default function Exercise() {
               {/* Colonne de gauche */}
               <div className="space-y-3">
                 <h3 className="font-semibold text-gray-900 mb-3">Français</h3>
-                {exerciseData.leftWords?.map((word: string, index: number) => (
-                  <button
-                    key={index}
-                    onClick={() => handleWordMatching(word, 'left')}
-                    className={`w-full p-4 rounded-xl border-2 transition-all font-medium text-left ${
-                      connections.some(c => c.left === word)
-                        ? 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    {word}
-                  </button>
-                ))}
+                {exerciseData.leftWords?.map((word: string, index: number) => {
+                  const isConnected = connections.some(c => c.left === word);
+                  const isSelected = selectedLeft === word;
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleWordMatching(word, 'left')}
+                      className={`w-full p-4 rounded-xl border-2 transition-all font-medium text-left ${
+                        isConnected
+                          ? 'border-green-500 bg-green-50 text-green-700'
+                          : isSelected
+                          ? 'border-blue-500 bg-blue-100 text-blue-700 ring-2 ring-blue-300'
+                          : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-blue-300'
+                      }`}
+                    >
+                      {word}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Colonne de droite */}
               <div className="space-y-3">
                 <h3 className="font-semibold text-gray-900 mb-3">Traduction</h3>
-                {exerciseData.rightWords?.map((word: string, index: number) => (
-                  <div
-                    key={index}
-                    className={`w-full p-4 rounded-xl border-2 font-medium text-left ${
-                      connections.some(c => c.right === word)
-                        ? 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-200 bg-gray-50 text-gray-700'
-                    }`}
-                  >
-                    {word}
-                  </div>
-                ))}
+                {exerciseData.rightWords?.map((word: string, index: number) => {
+                  const isConnected = connections.some(c => c.right === word);
+                  const isSelected = selectedRight === word;
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleWordMatching(word, 'right')}
+                      className={`w-full p-4 rounded-xl border-2 transition-all font-medium text-left ${
+                        isConnected
+                          ? 'border-green-500 bg-green-50 text-green-700'
+                          : isSelected
+                          ? 'border-blue-500 bg-blue-100 text-blue-700 ring-2 ring-blue-300'
+                          : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-blue-300'
+                      }`}
+                    >
+                      {word}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
