@@ -50,6 +50,14 @@ app.get("/health", (_req, res) => {
 import levelsRouter from "./routes/levels";
 app.use("/levels", levelsRouter);
 
+
+
+import coursesRouter from "./routes/courses";
+app.use("/courses", coursesRouter);
+
+import languagesRouter from "./routes/languages";
+app.use("/languages", languagesRouter);
+
 import runsRouter from "./routes/runs";
 import { authenticateJWT } from "./middlewares/auth";
 app.use("/runs", authenticateJWT, runsRouter);

@@ -16,10 +16,13 @@ export async function getAllLevels(_req: Request, res: Response) {
 
 export async function getQuestionsByLevel(req: Request, res: Response) {
   const levelId = parseInt(String(req.params.id), 10);
+  const lang = req.query.lang as string | undefined;
   if (isNaN(levelId))
     return res.status(400).json({ error: "ID de niveau invalide." });
   try {
-    const questions = await prisma.question.findMany({ where: { levelId } });
+    const where: any = { levelId };
+    if (lang) where.language = lang;
+    const questions = await prisma.question.findMany({ where });
     res.json(questions);
   } catch (error) {
     res
