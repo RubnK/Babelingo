@@ -29,7 +29,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-
+  
   service:
     build: ./service
     depends_on:
@@ -45,6 +45,22 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      gateway:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
 
 volumes:
   pgdata:
