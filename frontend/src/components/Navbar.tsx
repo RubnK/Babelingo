@@ -27,21 +27,20 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Menu de navigation au centre */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link to="/courses" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-              Cours
-            </Link>
-            <Link to="/languages" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-              Langues
-            </Link>
-            <Link to="/community" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-              Communauté
-            </Link>
-            <Link to="/pricing" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-              Tarifs
-            </Link>
-          </div>
+          {/* Menu de navigation au centre - visible uniquement si connecté */}
+          {user && (
+            <div className="hidden md:flex items-center space-x-8">
+              <Link to="/courses" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                Cours
+              </Link>
+              <Link to="/languages" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                Langues
+              </Link>
+              <Link to="/community" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                Communauté
+              </Link>
+            </div>
+          )}
 
           <div className="flex items-center space-x-4">
             {user ? (

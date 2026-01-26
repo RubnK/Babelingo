@@ -6,6 +6,16 @@ const prisma = new PrismaClient();
 async function main() {
   // Ces données de seed ont été générées par IA afin de tester l'application durant le développement.
   // Elles ne sont pas destinées à être utilisées en production.
+  
+  console.log('Vérification des niveaux existants...');
+  const existingLevels = await prisma.level.findMany();
+  
+  if (existingLevels.length > 0) {
+    console.log(`${existingLevels.length} niveaux trouvés dans la base de données. Seed ignoré.`);
+    return;
+  }
+  
+  console.log('Création des niveaux...');
   const animaux = await prisma.level.create({
     data: {
       number: 1,

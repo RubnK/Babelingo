@@ -14,13 +14,15 @@ export default function Exercise() {
 
   const [exercises, setExercises] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
   useEffect(() => {
     const fetchExercises = async () => {
       try {
-        const lang = localStorage.getItem('selectedLanguage') || 'fr';
-        const res = await axios.get(`${import.meta.env.VITE_API_GAMEPLAY}/levels/${levelId}/exercises?lang=${lang}`);
+        // Récupérer les questions depuis l'API gameplay
+        const res = await axios.get(`${import.meta.env.VITE_API_GAMEPLAY}/levels/${levelId}/questions`);
         setExercises(res.data);
       } catch (err) {
+        console.error('Erreur lors du chargement des exercices:', err);
         setExercises([]);
       } finally {
         setLoading(false);
@@ -32,6 +34,46 @@ export default function Exercise() {
   const currentExercise = exercises[currentExerciseIndex];
   const progress = exercises.length > 0 ? ((currentExerciseIndex + 1) / exercises.length) * 100 : 0;
 
+  // Adapter les données de l'API à la structure attendue par le composant
+  const getExerciseData = () => {
+    if (!currentExercise) return null;
+    
+    const { type, content, language } = currentExercise;
+    
+    switch (type) {
+      case 'qcm':
+        return {
+          type: 'mcq',
+          title: `Question ${currentExerciseIndex + 1}`,
+          instruction: 'Sélectionnez la bonne réponse',
+          question: content.question,
+          options: content.options,
+          correctAnswer: content.answer
+        };
+      case 'matching':
+        return {
+          type: 'word-matching',
+          title: `Exercice ${currentExerciseIndex + 1}`,
+          instruction: 'Associez les mots avec leur traduction',
+          leftWords: content.baseWords,
+          rightWords: content.targetWords.map((t: any) => t.word),
+          correctPairs: content.baseWords.map((word: string, idx: number) => ({
+            left: word,
+            right: content.targetWords[idx]?.word
+          }))
+        };
+      default:
+        return {
+          type: type,
+          title: `Exercice ${currentExerciseIndex + 1}`,
+          instruction: 'Complétez l\'exercice',
+          ...content
+        };
+    }
+  };
+
+  const exerciseData = getExerciseData();
+
   const handleWordSelection = (word: string) => {
     if (selectedAnswers.includes(word)) {
       setSelectedAnswers(prev => prev.filter(w => w !== word));
@@ -41,10 +83,11 @@ export default function Exercise() {
   };
 
   const handleWordMatching = (word: string, column: 'left' | 'right') => {
+    if (!exerciseData) return;
     // Logique simplifiée de matching
     if (column === 'left') {
       // Pour cette démonstration, on connecte automatiquement au premier mot de droite disponible
-      const rightWord = currentExercise.rightWords?.find(w => 
+      const rightWord = exerciseData.rightWords?.find((w: string) => 
         !connections.some(c => c.right === w)
       );
       if (rightWord && !connections.some(c => c.left === word)) {
@@ -72,14 +115,16 @@ export default function Exercise() {
   };
 
   const isAnswerCorrect = () => {
-    switch (currentExercise.type) {
+    if (!exerciseData) return false;
+    
+    switch (exerciseData.type) {
       case 'word-selection':
-        return selectedAnswers.length === currentExercise.correctAnswers?.length &&
-               selectedAnswers.every(answer => currentExercise.correctAnswers?.includes(answer));
+        return selectedAnswers.length === exerciseData.correctAnswers?.length &&
+               selectedAnswers.every((answer: string) => exerciseData.correctAnswers?.includes(answer));
       case 'word-matching':
-        return connections.length === currentExercise.correctPairs?.length;
+        return connections.length === exerciseData.correctPairs?.length;
       case 'mcq':
-        return selectedMCQ === currentExercise.correctAnswer;
+        return selectedMCQ === exerciseData.correctAnswer;
       default:
         return false;
     }
@@ -87,6 +132,10 @@ export default function Exercise() {
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement des exercices...</div>;
+  }
+  
+  if (!exerciseData) {
+    return <div className="min-h-screen flex items-center justify-center">Aucun exercice disponible</div>;
   }
 
   if (isCompleted) {
@@ -114,7 +163,7 @@ export default function Exercise() {
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold text-gray-900">
-              {currentExercise.title}
+              {exerciseData.title}
             </h1>
             <button
               onClick={handleReset}
@@ -137,19 +186,19 @@ export default function Exercise() {
         {/* Instructions */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            {currentExercise.instruction}
+            {exerciseData.instruction}
           </h2>
-          {currentExercise.type === 'mcq' && (
-            <p className="text-lg text-gray-700">{currentExercise.question}</p>
+          {exerciseData.type === 'mcq' && (
+            <p className="text-lg text-gray-700">{exerciseData.question}</p>
           )}
         </div>
 
         {/* Zone d'exercice */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           {/* Exercice de sélection de mots */}
-          {currentExercise.type === 'word-selection' && (
+          {exerciseData.type === 'word-selection' && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {currentExercise.words?.map((word, index) => (
+              {exerciseData.words?.map((word: string, index: number) => (
                 <button
                   key={index}
                   onClick={() => handleWordSelection(word)}
@@ -166,12 +215,12 @@ export default function Exercise() {
           )}
 
           {/* Exercice de correspondance */}
-          {currentExercise.type === 'word-matching' && (
+          {exerciseData.type === 'word-matching' && (
             <div className="grid md:grid-cols-2 gap-8">
               {/* Colonne de gauche */}
               <div className="space-y-3">
                 <h3 className="font-semibold text-gray-900 mb-3">Français</h3>
-                {currentExercise.leftWords?.map((word, index) => (
+                {exerciseData.leftWords?.map((word: string, index: number) => (
                   <button
                     key={index}
                     onClick={() => handleWordMatching(word, 'left')}
@@ -188,8 +237,8 @@ export default function Exercise() {
 
               {/* Colonne de droite */}
               <div className="space-y-3">
-                <h3 className="font-semibold text-gray-900 mb-3">Anglais</h3>
-                {currentExercise.rightWords?.map((word, index) => (
+                <h3 className="font-semibold text-gray-900 mb-3">Traduction</h3>
+                {exerciseData.rightWords?.map((word: string, index: number) => (
                   <div
                     key={index}
                     className={`w-full p-4 rounded-xl border-2 font-medium text-left ${
@@ -206,9 +255,9 @@ export default function Exercise() {
           )}
 
           {/* QCM */}
-          {currentExercise.type === 'mcq' && (
+          {exerciseData.type === 'mcq' && (
             <div className="space-y-3">
-              {currentExercise.options?.map((option, index) => (
+              {exerciseData.options?.map((option: string, index: number) => (
                 <button
                   key={index}
                   onClick={() => setSelectedMCQ(option)}

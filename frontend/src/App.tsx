@@ -8,7 +8,6 @@ import Dashboard from './pages/Dashboard'
 import Courses from './pages/Courses'
 import Languages from './pages/Languages'
 import Community from './pages/Community'
-import Pricing from './pages/Pricing'
 import LanguageSelection from './pages/LanguageSelection'
 import LevelSelection from './pages/LevelSelection'
 import Exercise from './pages/Exercise'
@@ -31,7 +30,6 @@ function App() {
             <Route path="/courses" element={<Courses />} />
             <Route path="/languages" element={<Languages />} />
             <Route path="/community" element={<Community />} />
-            <Route path="/pricing" element={<Pricing />} />
           </Routes>
         </main>
       </div>
