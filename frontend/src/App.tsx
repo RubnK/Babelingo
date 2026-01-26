@@ -9,6 +9,9 @@ import Courses from './pages/Courses'
 import Languages from './pages/Languages'
 import Community from './pages/Community'
 import Pricing from './pages/Pricing'
+import LanguageSelection from './pages/LanguageSelection'
+import LevelSelection from './pages/LevelSelection'
+import Exercise from './pages/Exercise'
 import { AuthProvider } from './contexts/AuthContext'
 
 function App() {
@@ -21,7 +24,10 @@ function App() {
             <Route path="/" element={<Homepage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/language-selection" element={<LanguageSelection />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/level-selection" element={<LevelSelection />} />
+            <Route path="/exercise/:levelId" element={<Exercise />} />
             <Route path="/courses" element={<Courses />} />
             <Route path="/languages" element={<Languages />} />
             <Route path="/community" element={<Community />} />

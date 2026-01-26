@@ -186,7 +186,6 @@ export default function Register() {
                 </div>
               ) : (
                 <div className="flex items-center">
-                  <span className="mr-2">🚀</span>
                   Créer mon compte gratuit
                 </div>
               )}
@@ -200,10 +199,6 @@ export default function Register() {
               <li className="flex items-center">
                 <span className="text-green-500 mr-2">✓</span>
                 Accès à plus de 50 langues
-              </li>
-              <li className="flex items-center">
-                <span className="text-green-500 mr-2">✓</span>
-                Leçons personnalisées par IA
               </li>
               <li className="flex items-center">
                 <span className="text-green-500 mr-2">✓</span>

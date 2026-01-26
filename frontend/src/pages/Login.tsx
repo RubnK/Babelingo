@@ -24,8 +24,8 @@ export default function Login() {
     console.log('Résultat de la connexion:', result)
     
     if (result.success) {
-      console.log('Connexion réussie, redirection vers /dashboard')
-      navigate('/dashboard')
+      console.log('Connexion réussie, redirection vers /language-selection')
+      navigate('/language-selection')
     } else {
       console.log('Connexion échouée:', result.message)
       setError(result.message || 'Email ou mot de passe incorrect')
