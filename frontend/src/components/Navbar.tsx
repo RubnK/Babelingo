@@ -33,9 +33,6 @@ export default function Navbar() {
               <Link to="/courses" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
                 Cours
               </Link>
-              <Link to="/languages" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-                Langues
-              </Link>
               <Link to="/community" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
                 Communauté
               </Link>

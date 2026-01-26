@@ -6,7 +6,6 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Courses from './pages/Courses'
-import Languages from './pages/Languages'
 import Community from './pages/Community'
 import LanguageSelection from './pages/LanguageSelection'
 import LevelSelection from './pages/LevelSelection'
@@ -28,7 +27,6 @@ function App() {
             <Route path="/level-selection" element={<LevelSelection />} />
             <Route path="/exercise/:levelId" element={<Exercise />} />
             <Route path="/courses" element={<Courses />} />
-            <Route path="/languages" element={<Languages />} />
             <Route path="/community" element={<Community />} />
           </Routes>
         </main>
