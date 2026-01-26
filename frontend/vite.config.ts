@@ -11,6 +11,11 @@ export default defineConfig({
         target: 'http://gateway:3000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
+      },
+      '/gameplay': {
+        target: 'http://service:4000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/gameplay/, '')
       }
     }
   }

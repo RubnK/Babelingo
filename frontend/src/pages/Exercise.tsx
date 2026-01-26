@@ -11,16 +11,20 @@ export default function Exercise() {
   const [connections, setConnections] = useState<{left: string, right: string}[]>([]);
   const [selectedMCQ, setSelectedMCQ] = useState<string>('');
   const [isCompleted, setIsCompleted] = useState(false);
+  const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
+  const [selectedRight, setSelectedRight] = useState<string | null>(null);
 
   const [exercises, setExercises] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
   useEffect(() => {
     const fetchExercises = async () => {
       try {
-        const lang = localStorage.getItem('selectedLanguage') || 'fr';
-        const res = await axios.get(`${import.meta.env.VITE_API_GAMEPLAY}/levels/${levelId}/exercises?lang=${lang}`);
+        // Récupérer les questions depuis l'API gameplay
+        const res = await axios.get(`${import.meta.env.VITE_API_GAMEPLAY}/levels/${levelId}/questions`);
         setExercises(res.data);
       } catch (err) {
+        console.error('Erreur lors du chargement des exercices:', err);
         setExercises([]);
       } finally {
         setLoading(false);
@@ -32,6 +36,46 @@ export default function Exercise() {
   const currentExercise = exercises[currentExerciseIndex];
   const progress = exercises.length > 0 ? ((currentExerciseIndex + 1) / exercises.length) * 100 : 0;
 
+  // Adapter les données de l'API à la structure attendue par le composant
+  const getExerciseData = () => {
+    if (!currentExercise) return null;
+    
+    const { type, content, language } = currentExercise;
+    
+    switch (type) {
+      case 'qcm':
+        return {
+          type: 'mcq',
+          title: `Question ${currentExerciseIndex + 1}`,
+          instruction: 'Sélectionnez la bonne réponse',
+          question: content.question,
+          options: content.options,
+          correctAnswer: content.answer
+        };
+      case 'matching':
+        return {
+          type: 'word-matching',
+          title: `Exercice ${currentExerciseIndex + 1}`,
+          instruction: 'Associez les mots avec leur traduction',
+          leftWords: content.baseWords,
+          rightWords: content.targetWords.map((t: any) => t.word),
+          correctPairs: content.baseWords.map((word: string, idx: number) => ({
+            left: word,
+            right: content.targetWords[idx]?.word
+          }))
+        };
+      default:
+        return {
+          type: type,
+          title: `Exercice ${currentExerciseIndex + 1}`,
+          instruction: 'Complétez l\'exercice',
+          ...content
+        };
+    }
+  };
+
+  const exerciseData = getExerciseData();
+
   const handleWordSelection = (word: string) => {
     if (selectedAnswers.includes(word)) {
       setSelectedAnswers(prev => prev.filter(w => w !== word));
@@ -41,14 +85,45 @@ export default function Exercise() {
   };
 
   const handleWordMatching = (word: string, column: 'left' | 'right') => {
-    // Logique simplifiée de matching
+    if (!exerciseData) return;
+    
     if (column === 'left') {
-      // Pour cette démonstration, on connecte automatiquement au premier mot de droite disponible
-      const rightWord = currentExercise.rightWords?.find(w => 
-        !connections.some(c => c.right === w)
-      );
-      if (rightWord && !connections.some(c => c.left === word)) {
-        setConnections(prev => [...prev, { left: word, right: rightWord }]);
+      // Si le mot gauche est déjà connecté, le déconnecter
+      const existingConnection = connections.find(c => c.left === word);
+      if (existingConnection) {
+        setConnections(prev => prev.filter(c => c.left !== word));
+        setSelectedLeft(null);
+        setSelectedRight(null);
+        return;
+      }
+      
+      // Sélectionner le mot de gauche
+      setSelectedLeft(word);
+      
+      // Si un mot de droite est déjà sélectionné, créer la connexion
+      if (selectedRight) {
+        setConnections(prev => [...prev, { left: word, right: selectedRight }]);
+        setSelectedLeft(null);
+        setSelectedRight(null);
+      }
+    } else {
+      // Si le mot droit est déjà connecté, le déconnecter
+      const existingConnection = connections.find(c => c.right === word);
+      if (existingConnection) {
+        setConnections(prev => prev.filter(c => c.right !== word));
+        setSelectedLeft(null);
+        setSelectedRight(null);
+        return;
+      }
+      
+      // Sélectionner le mot de droite
+      setSelectedRight(word);
+      
+      // Si un mot de gauche est déjà sélectionné, créer la connexion
+      if (selectedLeft) {
+        setConnections(prev => [...prev, { left: selectedLeft, right: word }]);
+        setSelectedLeft(null);
+        setSelectedRight(null);
       }
     }
   };
@@ -60,6 +135,8 @@ export default function Exercise() {
       setSelectedAnswers([]);
       setConnections([]);
       setSelectedMCQ('');
+      setSelectedLeft(null);
+      setSelectedRight(null);
     } else {
       setIsCompleted(true);
     }
@@ -69,17 +146,21 @@ export default function Exercise() {
     setSelectedAnswers([]);
     setConnections([]);
     setSelectedMCQ('');
+    setSelectedLeft(null);
+    setSelectedRight(null);
   };
 
   const isAnswerCorrect = () => {
-    switch (currentExercise.type) {
+    if (!exerciseData) return false;
+    
+    switch (exerciseData.type) {
       case 'word-selection':
-        return selectedAnswers.length === currentExercise.correctAnswers?.length &&
-               selectedAnswers.every(answer => currentExercise.correctAnswers?.includes(answer));
+        return selectedAnswers.length === exerciseData.correctAnswers?.length &&
+               selectedAnswers.every((answer: string) => exerciseData.correctAnswers?.includes(answer));
       case 'word-matching':
-        return connections.length === currentExercise.correctPairs?.length;
+        return connections.length === exerciseData.correctPairs?.length;
       case 'mcq':
-        return selectedMCQ === currentExercise.correctAnswer;
+        return selectedMCQ === exerciseData.correctAnswer;
       default:
         return false;
     }
@@ -87,6 +168,10 @@ export default function Exercise() {
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement des exercices...</div>;
+  }
+  
+  if (!exerciseData) {
+    return <div className="min-h-screen flex items-center justify-center">Aucun exercice disponible</div>;
   }
 
   if (isCompleted) {
@@ -114,7 +199,7 @@ export default function Exercise() {
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold text-gray-900">
-              {currentExercise.title}
+              {exerciseData.title}
             </h1>
             <button
               onClick={handleReset}
@@ -137,19 +222,19 @@ export default function Exercise() {
         {/* Instructions */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            {currentExercise.instruction}
+            {exerciseData.instruction}
           </h2>
-          {currentExercise.type === 'mcq' && (
-            <p className="text-lg text-gray-700">{currentExercise.question}</p>
+          {exerciseData.type === 'mcq' && (
+            <p className="text-lg text-gray-700">{exerciseData.question}</p>
           )}
         </div>
 
         {/* Zone d'exercice */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           {/* Exercice de sélection de mots */}
-          {currentExercise.type === 'word-selection' && (
+          {exerciseData.type === 'word-selection' && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {currentExercise.words?.map((word, index) => (
+              {exerciseData.words?.map((word: string, index: number) => (
                 <button
                   key={index}
                   onClick={() => handleWordSelection(word)}
@@ -166,49 +251,62 @@ export default function Exercise() {
           )}
 
           {/* Exercice de correspondance */}
-          {currentExercise.type === 'word-matching' && (
+          {exerciseData.type === 'word-matching' && (
             <div className="grid md:grid-cols-2 gap-8">
               {/* Colonne de gauche */}
               <div className="space-y-3">
                 <h3 className="font-semibold text-gray-900 mb-3">Français</h3>
-                {currentExercise.leftWords?.map((word, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleWordMatching(word, 'left')}
-                    className={`w-full p-4 rounded-xl border-2 transition-all font-medium text-left ${
-                      connections.some(c => c.left === word)
-                        ? 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    {word}
-                  </button>
-                ))}
+                {exerciseData.leftWords?.map((word: string, index: number) => {
+                  const isConnected = connections.some(c => c.left === word);
+                  const isSelected = selectedLeft === word;
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleWordMatching(word, 'left')}
+                      className={`w-full p-4 rounded-xl border-2 transition-all font-medium text-left ${
+                        isConnected
+                          ? 'border-green-500 bg-green-50 text-green-700'
+                          : isSelected
+                          ? 'border-blue-500 bg-blue-100 text-blue-700 ring-2 ring-blue-300'
+                          : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-blue-300'
+                      }`}
+                    >
+                      {word}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Colonne de droite */}
               <div className="space-y-3">
-                <h3 className="font-semibold text-gray-900 mb-3">Anglais</h3>
-                {currentExercise.rightWords?.map((word, index) => (
-                  <div
-                    key={index}
-                    className={`w-full p-4 rounded-xl border-2 font-medium text-left ${
-                      connections.some(c => c.right === word)
-                        ? 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-200 bg-gray-50 text-gray-700'
-                    }`}
-                  >
-                    {word}
-                  </div>
-                ))}
+                <h3 className="font-semibold text-gray-900 mb-3">Traduction</h3>
+                {exerciseData.rightWords?.map((word: string, index: number) => {
+                  const isConnected = connections.some(c => c.right === word);
+                  const isSelected = selectedRight === word;
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleWordMatching(word, 'right')}
+                      className={`w-full p-4 rounded-xl border-2 transition-all font-medium text-left ${
+                        isConnected
+                          ? 'border-green-500 bg-green-50 text-green-700'
+                          : isSelected
+                          ? 'border-blue-500 bg-blue-100 text-blue-700 ring-2 ring-blue-300'
+                          : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-blue-300'
+                      }`}
+                    >
+                      {word}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
 
           {/* QCM */}
-          {currentExercise.type === 'mcq' && (
+          {exerciseData.type === 'mcq' && (
             <div className="space-y-3">
-              {currentExercise.options?.map((option, index) => (
+              {exerciseData.options?.map((option: string, index: number) => (
                 <button
                   key={index}
                   onClick={() => setSelectedMCQ(option)}

@@ -1,20 +1,28 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import axios from 'axios';
-import { BookOpen, Clock, Star, Users, ChevronRight } from 'lucide-react'
+import { BookOpen, ChevronRight } from 'lucide-react'
+
+interface Level {
+  id: number
+  number: number
+  category: string
+  questionsCount: number
+}
 
 export default function Courses() {
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [levels, setLevels] = useState<any[]>([]);
+  const [levels, setLevels] = useState<Level[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchLevels = async () => {
       try {
-        const lang = localStorage.getItem('selectedLanguage') || 'fr';
-        // On suppose que l'API levels peut être filtrée par langue si besoin
-        const res = await axios.get(`${import.meta.env.VITE_API_GAMEPLAY}/levels?lang=${lang}`);
-        setLevels(res.data);
-      } catch (err) {
+        const response = await axios.get(`${import.meta.env.VITE_API_GAMEPLAY}/levels`);
+        setLevels(response.data);
+      } catch (error) {
+        console.error('Erreur lors du chargement des niveaux:', error);
         setLevels([]);
       } finally {
         setLoading(false);
@@ -29,6 +37,11 @@ export default function Courses() {
   const filteredLevels = levels.filter(level => {
     return selectedCategory === 'all' || level.category === selectedCategory;
   });
+
+  const handleStartLevel = (levelId: number) => {
+    // Naviguer directement vers la page d'exercice pour ce niveau
+    navigate(`/exercise/${levelId}`);
+  };
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement des niveaux...</div>;
@@ -69,9 +82,18 @@ export default function Courses() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredLevels.map((level) => (
             <div key={level.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group">
-              {/* Illustration fictive */}
+              {/* Illustration avec emoji en fonction de la catégorie */}
               <div className="h-48 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-                <span className="text-6xl">🏆</span>
+                <span className="text-6xl">
+                  {level.category === 'animaux' ? '🐾' :
+                   level.category === 'nourriture' ? '�' :
+                   level.category === 'maison' ? '🏠' :
+                   level.category === 'couleurs' ? '🎨' :
+                   level.category === 'transport' ? '🚗' :
+                   level.category === 'sport' ? '⚽' :
+                   level.category === 'famille' ? '👨‍👩‍👧‍👦' :
+                   '📚'}
+                </span>
               </div>
 
               <div className="p-6">
@@ -80,14 +102,20 @@ export default function Courses() {
                   Niveau {level.number} : {level.category}
                 </h3>
                 <p className="text-gray-600 mb-4 leading-relaxed">
-                  Progressez sur le thème « {level.category} ».
+                  Progressez sur le thème « {level.category} » avec des exercices variés.
                 </p>
 
-                {/* Méta informations fictives */}
+                {/* Nombre de questions réel */}
                 <div className="space-y-3 mb-6">
-                  <div className="flex items-center text-sm text-gray-500">
+                  <div className="flex items-center text-sm text-gray-500 space-x-2">
                     <BookOpen className="h-4 w-4" />
-                    <span>{typeof level.questionsCount === 'number' ? level.questionsCount : (level.questions?.length ?? '...')} questions</span>
+                    <span>{level.questionsCount} exercices</span>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-500 space-x-2">
+                    <span className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">
+                      ✓
+                    </span>
+                    <span>Minimum 7/10 pour valider</span>
                   </div>
                 </div>
 
@@ -99,7 +127,10 @@ export default function Courses() {
                 </div>
 
                 {/* Bouton d'action */}
-                <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center space-x-2 group">
+                <button 
+                  onClick={() => handleStartLevel(level.id)}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center space-x-2 group"
+                >
                   <span>Commencer ce niveau</span>
                   <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </button>
