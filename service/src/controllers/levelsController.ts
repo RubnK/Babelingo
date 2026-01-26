@@ -5,8 +5,20 @@ const prisma = new PrismaClient();
 
 export async function getAllLevels(_req: Request, res: Response) {
   try {
-    const levels = await prisma.level.findMany();
-    res.json(levels);
+    // On récupère les niveaux avec le nombre de questions pour chacun
+    const levels = await prisma.level.findMany({
+      include: {
+        _count: {
+          select: { questions: true }
+        }
+      }
+    });
+    // On renvoie le nombre de questions sous le champ questionsCount
+    const levelsWithCount = levels.map(l => ({
+      ...l,
+      questionsCount: l._count.questions
+    }));
+    res.json(levelsWithCount);
   } catch (error) {
     res
       .status(500)
@@ -16,10 +28,13 @@ export async function getAllLevels(_req: Request, res: Response) {
 
 export async function getQuestionsByLevel(req: Request, res: Response) {
   const levelId = parseInt(String(req.params.id), 10);
+  const lang = req.query.lang as string | undefined;
   if (isNaN(levelId))
     return res.status(400).json({ error: "ID de niveau invalide." });
   try {
-    const questions = await prisma.question.findMany({ where: { levelId } });
+    const where: any = { levelId };
+    if (lang) where.language = lang;
+    const questions = await prisma.question.findMany({ where });
     res.json(questions);
   } catch (error) {
     res

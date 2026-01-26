@@ -45,10 +45,10 @@ export default function LanguageSelection() {
         {/* Titre principal */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Choisissez votre langue
+            Choisissez votre langue principale
           </h1>
           <p className="text-xl text-gray-600">
-            Quelle langue souhaitez-vous apprendre aujourd'hui ?
+            Quelle est la langue que vous maîtrisez le mieux&nbsp;? (langue source)
           </p>
         </div>
 
