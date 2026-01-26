@@ -41,7 +41,8 @@ export default function Register() {
 
     const result = await register(email, password)
     if (result.success) {
-      navigate('/dashboard')
+      // Après inscription, forcer la sélection de langue
+      navigate('/language-selection')
     } else {
       setError(result.message || 'Erreur lors de la création du compte')
     }

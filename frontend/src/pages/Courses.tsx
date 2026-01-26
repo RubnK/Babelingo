@@ -1,90 +1,27 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import axios from 'axios';
 import { BookOpen, Clock, Star, Users, ChevronRight } from 'lucide-react'
 
 export default function Courses() {
   const [selectedLevel, setSelectedLevel] = useState('all')
   const [selectedLanguage, setSelectedLanguage] = useState('all')
 
-  const courses = [
-    {
-      id: 1,
-      title: 'Anglais - Débutant',
-      description: 'Apprenez les bases de l\'anglais avec des leçons interactives.',
-      language: 'Anglais',
-      level: 'Débutant',
-      duration: '4 semaines',
-      lessons: 20,
-      students: 1250,
-      rating: 4.8,
-      image: '🇬🇧',
-      progress: 0
-    },
-    {
-      id: 2,
-      title: 'Espagnol - Intermédiaire',
-      description: 'Perfectionnez votre espagnol avec des conversations pratiques.',
-      language: 'Espagnol',
-      level: 'Intermédiaire',
-      duration: '6 semaines',
-      lessons: 30,
-      students: 890,
-      rating: 4.9,
-      image: '🇪🇸',
-      progress: 0
-    },
-    {
-      id: 3,
-      title: 'Français - Avancé',
-      description: 'Maîtrisez les subtilités de la langue française.',
-      language: 'Français',
-      level: 'Avancé',
-      duration: '8 semaines',
-      lessons: 40,
-      students: 654,
-      rating: 4.7,
-      image: '🇫🇷',
-      progress: 0
-    },
-    {
-      id: 4,
-      title: 'Allemand - Débutant',
-      description: 'Découvrez l\'allemand à travers des exercices ludiques.',
-      language: 'Allemand',
-      level: 'Débutant',
-      duration: '5 semaines',
-      lessons: 25,
-      students: 432,
-      rating: 4.6,
-      image: '🇩🇪',
-      progress: 0
-    },
-    {
-      id: 5,
-      title: 'Italien - Intermédiaire',
-      description: 'Explorez la culture italienne à travers sa langue.',
-      language: 'Italien',
-      level: 'Intermédiaire',
-      duration: '6 semaines',
-      lessons: 28,
-      students: 567,
-      rating: 4.8,
-      image: '🇮🇹',
-      progress: 0
-    },
-    {
-      id: 6,
-      title: 'Japonais - Débutant',
-      description: 'Initiez-vous au japonais avec les hiragana et katakana.',
-      language: 'Japonais',
-      level: 'Débutant',
-      duration: '10 semaines',
-      lessons: 50,
-      students: 789,
-      rating: 4.9,
-      image: '🇯🇵',
-      progress: 0
-    }
-  ]
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const lang = localStorage.getItem('selectedLanguage') || 'fr';
+        const res = await axios.get(`${import.meta.env.VITE_API_GAMEPLAY}/courses?lang=${lang}`);
+        setCourses(res.data);
+      } catch (err) {
+        setCourses([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCourses();
+  }, []);
 
   const filteredCourses = courses.filter(course => {
     return (selectedLevel === 'all' || course.level === selectedLevel) &&
@@ -94,6 +31,9 @@ export default function Courses() {
   const languages = ['Tous', 'Anglais', 'Espagnol', 'Français', 'Allemand', 'Italien', 'Japonais']
   const levels = ['Tous', 'Débutant', 'Intermédiaire', 'Avancé']
 
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Chargement des cours...</div>;
+  }
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

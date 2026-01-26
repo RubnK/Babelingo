@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Lock, Play, CheckCircle } from 'lucide-react';
+import axios from 'axios';
 
 interface Level {
   id: number;
@@ -17,16 +18,16 @@ export default function LevelSelection() {
   const [levels, setLevels] = useState<Level[]>([]);
 
   useEffect(() => {
-    // Simulation des niveaux - à remplacer par un appel API
-    const mockLevels: Level[] = [
-      { id: 1, title: 'Salutations', description: 'Apprendre les salutations de base', isUnlocked: true, isCompleted: true, stars: 3, difficulty: 'easy' },
-      { id: 2, title: 'Les nombres', description: 'Compter de 1 à 20', isUnlocked: true, isCompleted: false, stars: 0, difficulty: 'easy' },
-      { id: 3, title: 'La famille', description: 'Vocabulaire familial', isUnlocked: true, isCompleted: false, stars: 0, difficulty: 'medium' },
-      { id: 4, title: 'Au restaurant', description: 'Commander au restaurant', isUnlocked: false, isCompleted: false, stars: 0, difficulty: 'medium' },
-      { id: 5, title: 'Les directions', description: 'Demander son chemin', isUnlocked: false, isCompleted: false, stars: 0, difficulty: 'hard' },
-      { id: 6, title: 'Conversation avancée', description: 'Dialogue complexe', isUnlocked: false, isCompleted: false, stars: 0, difficulty: 'hard' },
-    ];
-    setLevels(mockLevels);
+    const fetchLevels = async () => {
+      try {
+        const lang = localStorage.getItem('selectedLanguage') || 'fr';
+        const res = await axios.get(`${import.meta.env.VITE_API_GAMEPLAY}/levels?lang=${lang}`);
+        setLevels(res.data);
+      } catch (err) {
+        setLevels([]);
+      }
+    };
+    fetchLevels();
   }, []);
 
   const startLevel = (level: Level) => {

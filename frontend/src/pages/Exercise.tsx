@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight, RotateCcw } from 'lucide-react';
+import axios from 'axios';
 
 export default function Exercise() {
   const { levelId } = useParams();
@@ -11,43 +12,25 @@ export default function Exercise() {
   const [selectedMCQ, setSelectedMCQ] = useState<string>('');
   const [isCompleted, setIsCompleted] = useState(false);
 
-  // Données d'exercices simulées
-  const exercises = [
-    {
-      id: 1,
-      type: 'word-selection',
-      title: 'Niveau 1 - Exercice 1',
-      instruction: 'Sélectionnez tous les mots liés à la famille',
-      words: ['Mère', 'Voiture', 'Père', 'Maison', 'Sœur', 'Téléphone', 'Frère', 'Chat'],
-      correctAnswers: ['Mère', 'Père', 'Sœur', 'Frère']
-    },
-    {
-      id: 2,
-      type: 'word-matching',
-      title: 'Niveau 1 - Exercice 2',
-      instruction: 'Reliez les mots français avec leur traduction anglaise',
-      leftWords: ['Bonjour', 'Merci', 'Au revoir', 'S\'il vous plaît'],
-      rightWords: ['Thank you', 'Hello', 'Please', 'Goodbye'],
-      correctPairs: [
-        { left: 'Bonjour', right: 'Hello' },
-        { left: 'Merci', right: 'Thank you' },
-        { left: 'Au revoir', right: 'Goodbye' },
-        { left: 'S\'il vous plaît', right: 'Please' }
-      ]
-    },
-    {
-      id: 3,
-      type: 'mcq',
-      title: 'Niveau 1 - Exercice 3',
-      instruction: 'Choisissez la bonne réponse',
-      question: 'Comment dit-on "bonjour" en anglais ?',
-      options: ['Goodbye', 'Hello', 'Thank you', 'Please'],
-      correctAnswer: 'Hello'
-    }
-  ];
+  const [exercises, setExercises] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const fetchExercises = async () => {
+      try {
+        const lang = localStorage.getItem('selectedLanguage') || 'fr';
+        const res = await axios.get(`${import.meta.env.VITE_API_GAMEPLAY}/levels/${levelId}/exercises?lang=${lang}`);
+        setExercises(res.data);
+      } catch (err) {
+        setExercises([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchExercises();
+  }, [levelId]);
 
   const currentExercise = exercises[currentExerciseIndex];
-  const progress = ((currentExerciseIndex + 1) / exercises.length) * 100;
+  const progress = exercises.length > 0 ? ((currentExerciseIndex + 1) / exercises.length) * 100 : 0;
 
   const handleWordSelection = (word: string) => {
     if (selectedAnswers.includes(word)) {
@@ -101,6 +84,10 @@ export default function Exercise() {
         return false;
     }
   };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Chargement des exercices...</div>;
+  }
 
   if (isCompleted) {
     return (
