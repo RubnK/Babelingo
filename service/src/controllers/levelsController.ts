@@ -5,8 +5,20 @@ const prisma = new PrismaClient();
 
 export async function getAllLevels(_req: Request, res: Response) {
   try {
-    const levels = await prisma.level.findMany();
-    res.json(levels);
+    // On récupère les niveaux avec le nombre de questions pour chacun
+    const levels = await prisma.level.findMany({
+      include: {
+        _count: {
+          select: { questions: true }
+        }
+      }
+    });
+    // On renvoie le nombre de questions sous le champ questionsCount
+    const levelsWithCount = levels.map(l => ({
+      ...l,
+      questionsCount: l._count.questions
+    }));
+    res.json(levelsWithCount);
   } catch (error) {
     res
       .status(500)
